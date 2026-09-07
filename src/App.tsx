@@ -127,7 +127,7 @@ export default function App() {
               {mode === "light" ? <Moon size={15} /> : <Sun size={15} />}
             </button>
             <a
-              href="https://github.com/byllzz/keebkit.git"
+              href="https://github.com/bilalmlkdev/keebkit.git"
               target="_blank"
               rel="noreferrer"
               className="flex items-center gap-0.5 text-[14px] text-[var(--text-dim)] hover:text-[var(--text)] transition-colors"
@@ -246,7 +246,7 @@ export default function App() {
       </main>
 
       <footer className="border-t border-[var(--border-soft)] py-8 text-center text-[12px] text-[var(--text-faint)]">
-        keebkit - made by <a href="https://github.com/byllzz" target="_blank" className="text-[#9B26FF]">@byllzz</a>
+        keebkit - made by <a href="https://github.com/bilalmlkdev" target="_blank" className="text-[#9B26FF]">@bilalmlkdev</a>
       </footer>
     </div>
   );

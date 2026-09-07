@@ -1,12 +1,23 @@
-<p align="center">
+
+
+<div align="center">
+
   <a href="https://keebkit.vercel.app/">
-    <img src="./src/assets/preview.png" alt="keebkit Preview">
+    <img src="https://raw.githubusercontent.com/bilalmlkdev/keebkit/main/public/favicon.svg" alt="keebkit logo" width="100%" height="120">
   </a>
-</p>
 
 # keebkit
 
-A keyboard component for React, with haptics, mechanical sound effects, six colorways, and three layouts (QWERTY / AZERTY / Dvorak). Ships as a real shadcn registry item so it can be installed straight into any project.
+A keyboard component for React, with haptics, mechanical sound effects, six colorways, and <br> three layouts (QWERTY / AZERTY / Dvorak). Ships as a real shadcn registry item so it can be installed straight into any project.
+
+[![Live Demo](https://img.shields.io/badge/Live_Demo-Visit_Site-black?style=for-the-badge)](https://keebkit.vercel.app)
+[![GitHub Stars](https://img.shields.io/github/stars/bilalmlkdev/keebkit?style=for-the-badge&logo=github&color=yellow)](https://github.com/bilalmlkdev/keebkit.git)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](./LICENSE)
+
+</div>
+
+[![keebkit Dashboard](https://raw.githubusercontent.com/bilalmlkdev/keebkit/main/src/assets/preview.png)](https://keebkit.vercel.app/)
+
 
 **Live site:** https://keebkit.vercel.app
 
@@ -90,5 +101,4 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
-Made by [@byllzz](https://github.com/byllzz)
 
