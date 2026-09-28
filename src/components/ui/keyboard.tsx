@@ -17,6 +17,7 @@ export interface KeyboardInteractionEvent {
   code: string;
   phase: InteractionPhase;
   source: InteractionSource;
+  shiftKey: boolean;
 }
 
 export interface KeyboardProps {
@@ -27,6 +28,7 @@ export interface KeyboardProps {
   soundUrl?: string;
   className?: string;
   align?: PreviewAlign;
+  scale?: number;
   onKeyEvent?: (event: KeyboardInteractionEvent) => void;
 }
 
@@ -49,9 +51,6 @@ interface KeyDef {
   icon?: ReactNode;
 }
 
-//  Theme tokens 
-// Every theme sets: case (frame), base (letter keys), mod (modifier keys),
-// accent (esc/enter/space), text-on-base, text-on-mod, text-on-accent.
 const THEMES: Record<KeyboardTheme, ThemeTokens> = {
   classic: {
     case: "#232226", base: "#e4d7d7", mod: "#9b72ff", accent: "#9b72ff",
@@ -207,6 +206,7 @@ export default function Keyboard({
   soundUrl = "/sounds/click.ogg",
   className = "",
   align = "center",
+  scale = 1,
   onKeyEvent,
 }: KeyboardProps) {
   const [activeKeys, setActiveKeys] = useState<Set<string>>(new Set());
@@ -228,7 +228,6 @@ export default function Keyboard({
         .then((decoded) => { audioBufferRef.current = decoded; })
         .catch(() => {});
     } catch {
-      /* AudioContext unavailable */
     }
   }, [enableSound, soundUrl]);
 
@@ -244,7 +243,6 @@ export default function Keyboard({
       gain.connect(audioCtxRef.current.destination);
       source.start(0);
     } catch {
-      /* playback failed */
     }
   };
 
@@ -253,33 +251,32 @@ export default function Keyboard({
     try {
       navigator.vibrate?.(6);
     } catch {
-      /* vibration unavailable */
     }
   };
 
-  const pressKey = (code: string, source: InteractionSource = "physical") => {
+  const pressKey = (code: string, source: InteractionSource = "physical", shiftKey = false) => {
     setActiveKeys((prev) => new Set(prev).add(code));
     playSound();
     triggerHaptics();
-    onKeyEvent?.({ code, phase: "down", source });
+    onKeyEvent?.({ code, phase: "down", source, shiftKey });
   };
 
-  const releaseKey = (code: string, source: InteractionSource = "physical") => {
+  const releaseKey = (code: string, source: InteractionSource = "physical", shiftKey = false) => {
     setActiveKeys((prev) => {
       const next = new Set(prev);
       next.delete(code);
       return next;
     });
-    onKeyEvent?.({ code, phase: "up", source });
+    onKeyEvent?.({ code, phase: "up", source, shiftKey });
   };
 
   useEffect(() => {
     const handleDown = (e: KeyboardEvent) => {
       if (e.repeat) return;
-      pressKey(e.code, "physical");
+      pressKey(e.code, "physical", e.shiftKey);
     };
     const handleUp = (e: KeyboardEvent) => {
-      releaseKey(e.code, "physical");
+      releaseKey(e.code, "physical", e.shiftKey);
     };
     window.addEventListener("keydown", handleDown);
     window.addEventListener("keyup", handleUp);
@@ -287,8 +284,7 @@ export default function Keyboard({
       window.removeEventListener("keydown", handleDown);
       window.removeEventListener("keyup", handleUp);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enableSound, enableHaptics, onKeyEvent]);
+    }, [enableSound, enableHaptics, onKeyEvent]);
 
   const isPressed = (code: string) => activeKeys.has(code);
 
@@ -312,6 +308,7 @@ export default function Keyboard({
   };
 
   return (
+    <div style={{ transform: `scale(${scale})`, transformOrigin: "top center" }}>
     <div
       className={`keyboard-frame p-2 rounded-[14px] shadow-inner border flex flex-col gap-[1.5px] relative ${className}`}
       style={{ background: t.case, borderColor: "rgba(255,255,255,0.06)" }}
@@ -379,6 +376,7 @@ export default function Keyboard({
           })}
         </div>
       ))}
+    </div>
     </div>
   );
 }

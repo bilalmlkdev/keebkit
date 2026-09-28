@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect, type MouseEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Sun, Moon, Keyboard as KeyboardIcon, Eraser } from "lucide-react";
 import Keyboard, { KEYBOARD_THEMES, type KeyboardTheme, type KeyboardLayout, type KeyboardInteractionEvent } from "./ui/keyboard";
@@ -16,9 +16,6 @@ const THEME_ACCENTS: Record<KeyboardTheme, string> = {
 
 const LAYOUTS: KeyboardLayout[] = ["qwerty", "azerty", "dvorak"];
 
-// Minimal QWERTY char map for the typing-test box. Only used to render
-// what a click/keypress "would type" - it intentionally ignores the
-// azerty/dvorak remaps used by the visual keyboard for simplicity.
 const SHIFT_MAP: Record<string, string> = {
   Backquote: "~", Digit1: "!", Digit2: "@", Digit3: "#", Digit4: "$", Digit5: "%",
   Digit6: "^", Digit7: "&", Digit8: "*", Digit9: "(", Digit0: ")",
@@ -52,12 +49,21 @@ export default function FullKeyboardPage() {
   const [lastKey, setLastKey] = useState<LastKeyEvent | null>(null);
   const [showTypingTest, setShowTypingTest] = useState(false);
   const [typedText, setTypedText] = useState("");
-  const shiftHeldRef = useRef(false);
   const showTypingTestRef = useRef(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const handleKeyEvent = useCallback((e: KeyboardInteractionEvent) => {
-    if (e.code === "ShiftLeft" || e.code === "ShiftRight") {
-      shiftHeldRef.current = e.phase === "down";
+    const el = document.activeElement;
+    if (el instanceof HTMLElement) {
+      if (el.isContentEditable) return;
+      const tag = el.tagName;
+      if (tag === "BUTTON" || tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
     }
 
     if (e.phase !== "down") return;
@@ -73,12 +79,13 @@ export default function FullKeyboardPage() {
     } else if (e.code === "Tab") {
       setTypedText((t) => t + "\t");
     } else {
-      const char = charForCode(e.code, shiftHeldRef.current);
+      const char = charForCode(e.code, e.shiftKey);
       if (char) setTypedText((t) => t + char);
     }
   }, []);
 
-  const toggleTypingTest = () => {
+  const toggleTypingTest = (e: MouseEvent<HTMLButtonElement>) => {
+    e.currentTarget.blur();
     setShowTypingTest((v) => {
       showTypingTestRef.current = !v;
       return !v;
@@ -89,28 +96,37 @@ export default function FullKeyboardPage() {
 
   return (
     <div className="min-h-screen bg-[var(--bg)] flex flex-col">
-      <header className="sticky top-0 z-20 backdrop-blur bg-[var(--bg)]/80 border-b border-[var(--border-soft)]">
-        <div className="max-w-6xl mx-auto flex items-center justify-between px-6 h-14">
+      <nav className={`sticky top-6 z-50 ${scrolled ? "top-3" : "top-6"}`}>
+        <div className="max-w-[1280px] mx-auto flex justify-center">
+          <div
+            className={`flex items-center gap-5 px-5 py-2.5 rounded-full border backdrop-blur-xl ${
+              scrolled
+                ? "bg-[var(--bg)]/80 border-[var(--border)] shadow-lg"
+                : "bg-transparent border-transparent"
+            }`}
+          >
+            <span className="font-display text-[14px] font-semibold tracking-tight">
+              keebkit<span style={{ color: THEME_ACCENTS[theme] }}>.</span>
+            </span>
+            <div className="h-4 w-px bg-[var(--border)]" />
+            <button onClick={toggle} aria-label="Toggle light and dark mode"
+              className="p-1 rounded-md text-[var(--text-mute)] hover:text-[var(--text)] hover:bg-[var(--panel-2)]">
+              {mode === "light" ? <Moon size={14} /> : <Sun size={14} />}
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      <main className="flex-1 flex flex-col items-center px-6 py-10">
+        <div className="w-full max-w-4xl">
           <button
             onClick={goBack}
-            className="flex items-center gap-1.5 text-[13px] text-[var(--text-dim)] hover:text-[var(--text)] transition-colors"
+            className="flex items-center gap-1.5 text-[13px] text-[var(--text-dim)] hover:text-[var(--text)] mb-6 bg-[var(--panel)] rounded-full px-2 py-1"
           >
             <ArrowLeft size={15} /> Back
           </button>
-          <span className="font-display font-semibold tracking-tight text-[15px]">
-            keebkit<span style={{ color: THEME_ACCENTS[theme] }}>.</span>
-          </span>
-          <button
-            onClick={toggle}
-            aria-label="Toggle light and dark mode"
-            className="p-1.5 rounded-md text-[var(--text-mute)] hover:text-[var(--text)] hover:bg-[var(--panel-2)] transition-colors"
-          >
-            {mode === "light" ? <Moon size={15} /> : <Sun size={15} />}
-          </button>
         </div>
-      </header>
 
-      <main className="flex-1 flex flex-col items-center justify-center px-6 py-10">
         <LastKey lastKey={lastKey} accent={THEME_ACCENTS[theme]} />
 
         <div className="w-full overflow-x-auto flex justify-center py-6">
@@ -125,7 +141,7 @@ export default function FullKeyboardPage() {
 
         <button
           onClick={toggleTypingTest}
-          className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12px] font-medium transition-all mt-2 ${
+          className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12px] font-medium mt-2 ${
             showTypingTest
               ? "text-white shadow-sm"
               : "text-[var(--text-dim)] bg-[var(--panel-2)] hover:bg-[var(--border)]"
@@ -143,7 +159,7 @@ export default function FullKeyboardPage() {
                 onClick={() => setTypedText("")}
                 aria-label="Clear typed text"
                 title="Clear"
-                className="absolute top-2 right-2 p-1 rounded-md text-[var(--text-faint)] hover:text-[var(--text)] hover:bg-[var(--panel-2)] transition-colors"
+                className="absolute top-2 right-2 p-1 rounded-md text-[var(--text-faint)] hover:text-[var(--text)] hover:bg-[var(--panel-2)]"
               >
                 <Eraser size={13} />
               </button>
@@ -164,7 +180,7 @@ export default function FullKeyboardPage() {
             <button
               key={id}
               onClick={() => setTheme(id)}
-              className={`px-3.5 py-1.5 rounded-full text-[12px] font-medium transition-all ${
+              className={`px-3.5 py-1.5 rounded-full text-[12px] font-medium ${
                 theme === id
                   ? "text-white shadow-sm"
                   : "text-[var(--text-dim)] bg-[var(--panel-2)] hover:bg-[var(--border)]"
@@ -181,7 +197,7 @@ export default function FullKeyboardPage() {
             <button
               key={id}
               onClick={() => setLayout(id)}
-              className={`px-3 py-1 rounded-full text-[11px] font-mono-key transition-colors ${
+              className={`px-3 py-1 rounded-full text-[11px] font-mono-key ${
                 layout === id
                   ? "text-[var(--text)] bg-[var(--border)]"
                   : "text-[var(--text-mute)] hover:text-[var(--code-text)]"

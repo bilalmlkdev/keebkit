@@ -6,7 +6,8 @@ import tsx from "react-syntax-highlighter/dist/esm/languages/prism/tsx";
 import markup from "react-syntax-highlighter/dist/esm/languages/prism/markup";
 import javascript from "react-syntax-highlighter/dist/esm/languages/prism/javascript";
 import bash from "react-syntax-highlighter/dist/esm/languages/prism/bash";
-import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { vscDarkPlus, vs } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { useSiteMode } from "../../hooks/use-site-mode";
 
 SyntaxHighlighter.registerLanguage("jsx", jsx);
 SyntaxHighlighter.registerLanguage("tsx", tsx);
@@ -14,17 +15,16 @@ SyntaxHighlighter.registerLanguage("html", markup);
 SyntaxHighlighter.registerLanguage("javascript", javascript);
 SyntaxHighlighter.registerLanguage("bash", bash);
 
-const editorTheme = {
+const darkTheme = {
   ...vscDarkPlus,
-  'pre[class*="language-"]': {
-    ...vscDarkPlus['pre[class*="language-"]'],
-    background: "transparent",
-    margin: 0,
-  },
-  'code[class*="language-"]': {
-    ...vscDarkPlus['code[class*="language-"]'],
-    background: "transparent",
-  },
+  'pre[class*="language-"]': { ...vscDarkPlus['pre[class*="language-"]'], background: "transparent", margin: 0 },
+  'code[class*="language-"]': { ...vscDarkPlus['code[class*="language-"]'], background: "transparent" },
+};
+
+const lightTheme = {
+  ...vs,
+  'pre[class*="language-"]': { ...vs['pre[class*="language-"]'], background: "transparent", margin: 0 },
+  'code[class*="language-"]': { ...vs['code[class*="language-"]'], background: "transparent" },
 };
 
 export interface CodeBlockProps {
@@ -33,24 +33,26 @@ export interface CodeBlockProps {
 }
 
 export function CodeBlock({ code, language = "jsx" }: CodeBlockProps) {
+  const { mode } = useSiteMode();
   const [copied, setCopied] = useState(false);
+  const isDark = mode === "dark";
   const copy = () => {
     navigator.clipboard.writeText(code);
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
   };
   return (
-    <div className="relative rounded-xl border border-[var(--border)] bg-[#1e1e1e] group">
+    <div className={`relative group ${isDark ? "bg-[#1e1e1e]" : "bg-[#f5f5f5]"}`}>
       <button
         onClick={copy}
         aria-label="Copy code"
-        className="absolute top-2.5 right-2.5 z-10 p-1.5 rounded-md text-zinc-500 hover:text-zinc-200 hover:bg-white/5 transition-colors"
+        className={`absolute top-2.5 right-2.5 z-10 p-1.5 rounded-md ${isDark ? "text-zinc-500 hover:text-zinc-200 hover:bg-white/5" : "text-zinc-400 hover:text-zinc-700 hover:bg-black/5"}`}
       >
         {copied ? <Check size={14} /> : <Copy size={14} />}
       </button>
       <SyntaxHighlighter
         language={language}
-        style={editorTheme}
+        style={isDark ? darkTheme : lightTheme}
         customStyle={{
           margin: 0,
           padding: "16px",
@@ -62,7 +64,7 @@ export function CodeBlock({ code, language = "jsx" }: CodeBlockProps) {
         }}
         codeTagProps={{ style: { fontFamily: '"JetBrains Mono", ui-monospace, monospace' } }}
         showLineNumbers={code.split("\n").length > 8}
-        lineNumberStyle={{ color: "#4b4b52", minWidth: "2em" }}
+        lineNumberStyle={{ color: isDark ? "#4b4b52" : "#a1a1aa", minWidth: "2em" }}
       >
         {code}
       </SyntaxHighlighter>
@@ -88,21 +90,23 @@ export interface PackageManagerTabsProps {
 }
 
 export function PackageManagerTabs({ registryCommand }: PackageManagerTabsProps) {
+  const { mode } = useSiteMode();
   const [active, setActive] = useState<string>("pnpm");
+  const isDark = mode === "dark";
   const manager = MANAGERS.find((m) => m.id === active) ?? MANAGERS[0];
   const command = manager.cmd(registryCommand);
 
   return (
-    <div className="rounded-xl border border-[var(--border)] bg-[#1e1e1e] overflow-hidden">
-      <div className="flex items-center gap-1 px-2 pt-2 border-b border-white/5">
+    <div className={`rounded-xl border border-[var(--border)] overflow-hidden ${isDark ? "bg-[#1e1e1e]" : "bg-[#f5f5f5]"}`}>
+      <div className={`flex items-center gap-1 px-2 pt-2 border-b ${isDark ? "border-white/5" : "border-black/5"}`}>
         {MANAGERS.map((m) => (
           <button
             key={m.id}
             onClick={() => setActive(m.id)}
-            className={`px-3 py-1.5 text-[12px] font-mono-key rounded-t-md transition-colors ${
+            className={`px-3 py-1.5 text-[12px] font-mono-key rounded-t-md ${
               active === m.id
-                ? "text-zinc-100 bg-white/5"
-                : "text-zinc-500 hover:text-zinc-300"
+                ? isDark ? "text-zinc-100 bg-white/5" : "text-zinc-800 bg-black/5"
+                : isDark ? "text-zinc-500 hover:text-zinc-300" : "text-zinc-400 hover:text-zinc-600"
             }`}
           >
             {m.label}
@@ -115,7 +119,9 @@ export function PackageManagerTabs({ registryCommand }: PackageManagerTabsProps)
 }
 
 function CommandLine({ command }: { command: string }) {
+  const { mode } = useSiteMode();
   const [copied, setCopied] = useState(false);
+  const isDark = mode === "dark";
   const copy = () => {
     navigator.clipboard.writeText(command);
     setCopied(true);
@@ -126,11 +132,11 @@ function CommandLine({ command }: { command: string }) {
       <button
         onClick={copy}
         aria-label="Copy command"
-        className="absolute top-2.5 right-2.5 p-1.5 rounded-md text-zinc-500 hover:text-zinc-200 hover:bg-white/5 transition-colors"
+        className={`absolute top-2.5 right-2.5 p-1.5 rounded-md ${isDark ? "text-zinc-500 hover:text-zinc-200 hover:bg-white/5" : "text-zinc-400 hover:text-zinc-700 hover:bg-black/5"}`}
       >
         {copied ? <Check size={14} /> : <Copy size={14} />}
       </button>
-      <pre className="overflow-x-auto p-4 pr-10 text-[13px] font-mono-key text-[#c7b3ff]">
+      <pre className={`overflow-x-auto p-4 pr-10 text-[13px] font-mono-key`}>
         <code>{command}</code>
       </pre>
     </div>

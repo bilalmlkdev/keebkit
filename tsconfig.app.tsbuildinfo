@@ -1,1 +1,0 @@
-{"root":["./src/App.tsx","./src/main.tsx","./src/vite-env.d.ts","./src/components/FullKeyboardPage.tsx","./src/components/ui/code-block.tsx","./src/components/ui/keyboard.tsx","./src/components/ui/last-key.tsx","./src/hooks/use-site-mode.ts","./src/lib/format-sources.ts"],"version":"5.9.3"}

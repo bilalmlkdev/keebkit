@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import './index.css'
 import App from './App'
 import FullKeyboardPage from './components/FullKeyboardPage'
+import { SiteModeProvider } from './hooks/use-site-mode'
 
 const rootEl = document.getElementById('root')
 if (!rootEl) {
@@ -12,12 +13,14 @@ if (!rootEl) {
 
 createRoot(rootEl).render(
   <StrictMode>
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<App />} />
-        <Route path="/keyboard" element={<FullKeyboardPage />} />
-      </Routes>
-    </BrowserRouter>
+    <SiteModeProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<App />} />
+          <Route path="/keyboard" element={<FullKeyboardPage />} />
+        </Routes>
+      </BrowserRouter>
+    </SiteModeProvider>
   </StrictMode>,
 )
 
@@ -27,7 +30,6 @@ if ('serviceWorker' in navigator) {
   })
 }
 
-// Prevent Ctrl+ zoom (Ctrl/Cmd + +/-) and Ctrl+scroll zoom
 document.addEventListener("keydown", (e) => {
   if ((e.ctrlKey || e.metaKey) && (e.key === "+" || e.key === "-" || e.key === "0" || e.key === "=")) {
     e.preventDefault();
