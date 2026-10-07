@@ -67,3 +67,11 @@ button { cursor: pointer; }
 .key-pop {
   animation: floatUp 0.5s ease-out forwards;
 }
+
+.kb-code pre, .kb-no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.kb-code pre::-webkit-scrollbar, .kb-no-scrollbar::-webkit-scrollbar {
+  display: none;
+}

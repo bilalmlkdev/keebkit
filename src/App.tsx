@@ -55,32 +55,38 @@ interface Entry {
 
 function PropList({ entries }: { entries: Entry[] }) {
   return (
-    <ul className="overflow-hidden rounded-lg border border-[var(--border)]">
-      {entries.map((e, i) => (
-        <li
-          key={e.name}
-          className={`grid gap-x-6 gap-y-1 px-4 py-3.5 sm:grid-cols-[6.5rem_minmax(0,1fr)] ${
-            i > 0 ? "border-t border-[var(--border-soft)]" : ""
-          }`}
-        >
-          <code className="font-mono-key text-[12.5px] leading-5" style={{ color: ACCENT }}>
-            {e.name}
-          </code>
-          <div className="min-w-0">
-            <code className="block break-words font-mono-key text-[11.5px] leading-5 text-[var(--text-mute)]">
-              {e.type}
+    <div className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--panel)]">
+      <div className="grid grid-cols-[minmax(5.5rem,7.5rem)_minmax(0,1fr)] gap-x-6 border-b border-[var(--border)] bg-[var(--panel-2)] px-4 py-2 text-[10.5px] font-medium uppercase tracking-[0.12em] text-[var(--text-faint)]">
+        <span>Name</span>
+        <span>Details</span>
+      </div>
+      <ul>
+        {entries.map((e, i) => (
+          <li
+            key={e.name}
+            className={`grid grid-cols-[minmax(5.5rem,7.5rem)_minmax(0,1fr)] gap-x-6 px-4 py-3.5 transition-colors hover:bg-[var(--panel-2)]/60 ${
+              i > 0 ? "border-t border-[var(--border-soft)]" : ""
+            }`}
+          >
+            <code className="font-mono-key text-[12.5px] leading-5" style={{ color: ACCENT }}>
+              {e.name}
             </code>
-            <p className="mt-1.5 text-[12.5px] leading-relaxed text-[var(--text-dim)]">{e.desc}</p>
-            {e.def && (
-              <p className="mt-1.5 text-[11.5px] text-[var(--text-faint)]">
-                Default{" "}
-                <code className="font-mono-key text-[var(--text-mute)]">{e.def}</code>
-              </p>
-            )}
-          </div>
-        </li>
-      ))}
-    </ul>
+            <div className="min-w-0">
+              <code className="inline-block max-w-full break-words rounded-md bg-[var(--panel-2)] px-1.5 py-0.5 font-mono-key text-[11px] leading-5 text-[var(--text-mute)]">
+                {e.type}
+              </code>
+              <p className="mt-1.5 text-[12.5px] leading-relaxed text-[var(--text-dim)]">{e.desc}</p>
+              {e.def && (
+                <p className="mt-1.5 text-[11.5px] text-[var(--text-faint)]">
+                  Default{" "}
+                  <code className="rounded bg-[var(--panel-2)] px-1 py-px font-mono-key text-[var(--text-mute)]">{e.def}</code>
+                </p>
+              )}
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 
@@ -155,12 +161,12 @@ export default function App() {
             }}
             className="group relative mt-6 h-[380px] cursor-pointer overflow-hidden border border-[var(--border)] bg-[var(--panel)]"
           >
-            <div className="absolute -right-[35%] bottom-0 ">
+            <div className="absolute -right-[35%] bottom-0" onClick={(e) => e.stopPropagation()}>
               <Keyboard
                 theme={previewTheme}
                 layout={previewLayout}
-                enableSound={false}
-                enableHaptics={false}
+                enableSound
+                enableHaptics
                 className="scale-110"
               />
             </div>
@@ -315,10 +321,34 @@ function FormatSwitcher() {
           </button>
         ))}
       </div>
-      <CodeBlock
-        code={FORMAT_SOURCES[format]}
-        language={format === "js" ? "javascript" : format}
-      />
+      <CollapsibleCode code={FORMAT_SOURCES[format]} language={format === "js" ? "javascript" : format} />
+    </div>
+  );
+}
+
+function CollapsibleCode({ code, language }: { code: string; language: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div>
+      <div
+        className={open ? "" : "max-h-[320px] overflow-hidden"}
+        style={
+          open
+            ? undefined
+            : {
+                maskImage: "linear-gradient(to bottom, black 55%, transparent 100%)",
+                WebkitMaskImage: "linear-gradient(to bottom, black 55%, transparent 100%)",
+              }
+        }
+      >
+        <CodeBlock code={code} language={language} />
+      </div>
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="mt-2 rounded-full bg-[var(--panel-2)] px-3.5 py-1.5 text-[12px] font-medium text-[var(--text-dim)] hover:bg-[var(--border)] hover:text-[var(--text)]"
+      >
+        {open ? "Show less" : "Show full code"}
+      </button>
     </div>
   );
 }

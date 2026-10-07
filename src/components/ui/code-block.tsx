@@ -42,7 +42,7 @@ export function CodeBlock({ code, language = "jsx" }: CodeBlockProps) {
     setTimeout(() => setCopied(false), 1500);
   };
   return (
-    <div className={`relative group ${isDark ? "bg-[#1e1e1e]" : "bg-[#f5f5f5]"}`}>
+    <div className={`relative group kb-code ${isDark ? "bg-[#1e1e1e]" : "bg-[#f5f5f5]"}`}>
       <button
         onClick={copy}
         aria-label="Copy code"
@@ -60,7 +60,6 @@ export function CodeBlock({ code, language = "jsx" }: CodeBlockProps) {
           fontSize: "13px",
           lineHeight: 1.6,
           background: "transparent",
-          maxHeight: "420px",
         }}
         codeTagProps={{ style: { fontFamily: '"JetBrains Mono", ui-monospace, monospace' } }}
         showLineNumbers={code.split("\n").length > 8}
@@ -97,7 +96,7 @@ export function PackageManagerTabs({ registryCommand }: PackageManagerTabsProps)
   const command = manager.cmd(registryCommand);
 
   return (
-    <div className={`rounded-xl border border-[var(--border)] overflow-hidden ${isDark ? "bg-[#1e1e1e]" : "bg-[#f5f5f5]"}`}>
+    <div className={`rounded-xl border overflow-hidden ${isDark ? "bg-[#1e1e1e]" : "bg-[#f5f5f5]"} border-[var(--border)]`}>
       <div className={`flex items-center gap-1 px-2 pt-2 border-b ${isDark ? "border-white/5" : "border-black/5"}`}>
         {MANAGERS.map((m) => (
           <button
@@ -136,7 +135,7 @@ function CommandLine({ command }: { command: string }) {
       >
         {copied ? <Check size={14} /> : <Copy size={14} />}
       </button>
-      <pre className={`overflow-x-auto p-4 pr-10 text-[13px] font-mono-key`}>
+      <pre className={`kb-no-scrollbar overflow-x-auto p-4 pr-10 text-[13px] font-mono-key`}>
         <code>{command}</code>
       </pre>
     </div>

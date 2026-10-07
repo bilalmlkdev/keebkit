@@ -1,4 +1,6 @@
 import { useEffect, useState, useRef } from "react";
+import { LAYOUT_MAPS } from "../../lib/keyboard-theme-data";
+import type { KeyboardLayout } from "../../lib/keyboard-theme-data";
 
 export interface LastKeyEvent {
   code: string;
@@ -30,9 +32,10 @@ function labelFor(code: string | undefined): string {
 export interface LastKeyProps {
   lastKey: LastKeyEvent | null;
   accent?: string;
+  layout?: KeyboardLayout;
 }
 
-export default function LastKey({ lastKey, accent = "#9b72ff" }: LastKeyProps) {
+export default function LastKey({ lastKey, accent = "#9b72ff", layout = "qwerty" }: LastKeyProps) {
   const [expiredId, setExpiredId] = useState<string | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
@@ -44,7 +47,9 @@ export default function LastKey({ lastKey, accent = "#9b72ff" }: LastKeyProps) {
   }, [lastKey]);
 
   const display: DisplayState | null =
-    lastKey && expiredId !== lastKey.id ? { label: labelFor(lastKey.code), id: lastKey.id } : null;
+    lastKey && expiredId !== lastKey.id
+      ? { label: LAYOUT_MAPS[layout]?.[lastKey.code] ?? labelFor(lastKey.code), id: lastKey.id }
+      : null;
 
   return (
     <div className="h-14 flex items-end justify-center mb-1 pointer-events-none">

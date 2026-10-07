@@ -42,9 +42,13 @@ export const KEYBOARD_THEMES = Object.keys(THEMES) as KeyboardTheme[];
 export const LAYOUT_MAPS: Record<KeyboardLayout, Record<string, string>> = {
   qwerty: {},
   azerty: {
-    KeyQ: "A", KeyW: "Z", KeyA: "Q", KeyZ: "W", KeyM: ";", Semicolon: "M",
-    Minus: ")", Equal: "=", BracketLeft: "^", BracketRight: "$",
-    Backslash: "£", Quote: "ù", Slash: "!",
+    Backquote: "²", Digit1: "&", Digit2: "é", Digit3: "\"", Digit4: "'", Digit5: "(",
+    Digit6: "-", Digit7: "è", Digit8: "_", Digit9: "ç", Digit0: "à", Minus: ")", Equal: "=",
+    KeyQ: "A", KeyW: "Z", KeyA: "Q", KeyZ: "W", KeyM: ",", Semicolon: "M",
+    BracketLeft: "^", BracketRight: "$", Backslash: "*", Quote: "ù",
+    KeyE: "E", KeyR: "R", KeyT: "T", KeyY: "Y", KeyU: "U", KeyI: "I", KeyO: "O", KeyP: "P",
+    KeyS: "S", KeyD: "D", KeyF: "F", KeyG: "G", KeyH: "H", KeyJ: "J", KeyK: "K", KeyL: "L",
+    KeyX: "X", KeyC: "C", KeyV: "V", KeyB: "B", KeyN: "N", Comma: ";", Period: ":", Slash: "!",
   },
   dvorak: {
     KeyQ: "'", KeyW: ",", KeyE: ".", KeyR: "P", KeyT: "Y", KeyY: "F", KeyU: "G",
@@ -56,3 +60,15 @@ export const LAYOUT_MAPS: Record<KeyboardLayout, Record<string, string>> = {
   },
 };
 
+
+export const THEME_LABELS: Record<KeyboardTheme, string> = {
+  classic: "Classic", mint: "Mint", royal: "Royal",
+  dolch: "Dolch", sand: "Sand", scarlet: "Scarlet",
+};
+
+export const THEME_ACCENTS: Record<KeyboardTheme, string> = {
+  classic: "#9b72ff", mint: "#37b787", royal: "#5b5fef",
+  dolch: "#c98a3f", sand: "#c9a227", scarlet: "#d43b34",
+};
+
+export const KEYBOARD_LAYOUTS: KeyboardLayout[] = ["qwerty", "azerty", "dvorak"];

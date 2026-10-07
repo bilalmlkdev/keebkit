@@ -164,17 +164,22 @@ export default function Keyboard({
   useEffect(() => {
     if (!enableSound) return;
     let cancelled = false;
+    try {
+      if (!audioCtxRef.current) {
+        const Ctx = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+        if (!Ctx) return;
+        audioCtxRef.current = new Ctx();
+      }
+    } catch {
+      return;
+    }
     fetch(soundUrl)
       .then((r) => r.arrayBuffer())
       .then((buf) => {
         rawAudioRef.current = buf;
-        if (audioCtxRef.current) {
-          audioCtxRef.current
-            .decodeAudioData(buf.slice(0))
-            .then((decoded) => { if (!cancelled) audioBufferRef.current = decoded; })
-            .catch(() => {});
-        }
+        return audioCtxRef.current?.decodeAudioData(buf.slice(0));
       })
+      .then((decoded) => { if (!cancelled && decoded) audioBufferRef.current = decoded; })
       .catch(() => {});
     return () => { cancelled = true; };
   }, [enableSound, soundUrl]);
@@ -201,7 +206,8 @@ export default function Keyboard({
             .catch(() => {});
         }
       }
-      if (!audioBufferRef.current || !audioCtxRef.current) return;
+      if (!audioCtxRef.current) return;
+      if (!audioBufferRef.current) return;
       if (audioCtxRef.current.state === "suspended") audioCtxRef.current.resume();
       const source = audioCtxRef.current.createBufferSource();
       source.buffer = audioBufferRef.current;
