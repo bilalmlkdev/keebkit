@@ -16,7 +16,7 @@ A keyboard component for React, with haptics, mechanical sound effects, six colo
 
 </div>
 
-[![keebkit Dashboard](https://raw.githubusercontent.com/bilalmlkdev/keebkit/main/src/assets/preview.png)](https://keebkit.vercel.app/)
+[![keebkit Dashboard](https://raw.githubusercontent.com/bilalmlkdev/keebkit/main/public/preview.png)](https://keebkit.vercel.app/)
 
 
 **Live site:** https://keebkit.vercel.app
