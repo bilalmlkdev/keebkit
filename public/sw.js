@@ -1,6 +1,5 @@
-const CACHE_NAME = "keebkit-cache-v1";
+const CACHE_NAME = "keebkit-cache-v2";
 const PRECACHE_URLS = [
-  "/",
   "/manifest.webmanifest",
   "/icon-192.png",
   "/icon-512.png",
@@ -28,17 +27,23 @@ self.addEventListener("fetch", (event) => {
 
   const url = new URL(event.request.url);
 
-  // Network-first for JS files — never cache JS chunks
-  if (url.pathname.endsWith(".js")) {
+  // Network-first for navigations and JS — always get fresh HTML/code
+  if (event.request.mode === "navigate" || url.pathname.endsWith(".js") || url.pathname === "/") {
     event.respondWith(
       fetch(event.request)
-        .then((response) => response)
+        .then((response) => {
+          if (response && response.status === 200 && response.type === "basic") {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          }
+          return response;
+        })
         .catch(() => caches.match(event.request))
     );
     return;
   }
 
-  // Cache-first for everything else (images, fonts, sounds, manifest)
+  // Cache-first for static assets (icons, sounds, css, images)
   event.respondWith(
     caches.match(event.request).then((cached) => {
       const fetchPromise = fetch(event.request)

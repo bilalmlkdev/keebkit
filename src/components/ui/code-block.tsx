@@ -7,7 +7,7 @@ import markup from "react-syntax-highlighter/dist/esm/languages/prism/markup";
 import javascript from "react-syntax-highlighter/dist/esm/languages/prism/javascript";
 import bash from "react-syntax-highlighter/dist/esm/languages/prism/bash";
 import { vscDarkPlus, vs } from "react-syntax-highlighter/dist/esm/styles/prism";
-import { useSiteMode } from "../../hooks/use-site-mode";
+import { useSiteMode } from "../../lib/site-mode";
 
 SyntaxHighlighter.registerLanguage("jsx", jsx);
 SyntaxHighlighter.registerLanguage("tsx", tsx);

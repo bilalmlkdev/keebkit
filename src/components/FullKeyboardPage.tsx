@@ -1,9 +1,10 @@
 import { useState, useCallback, useRef, useEffect, type MouseEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Sun, Moon, Keyboard as KeyboardIcon, Eraser } from "lucide-react";
-import Keyboard, { KEYBOARD_THEMES, type KeyboardTheme, type KeyboardLayout, type KeyboardInteractionEvent } from "./ui/keyboard";
+import Keyboard, { type KeyboardTheme, type KeyboardLayout, type KeyboardInteractionEvent } from "./ui/keyboard";
+import { KEYBOARD_THEMES, LAYOUT_MAPS } from "../lib/keyboard-theme-data";
 import LastKey, { type LastKeyEvent } from "./ui/last-key";
-import { useSiteMode } from "../hooks/use-site-mode";
+import { useSiteMode } from "../lib/site-mode";
 
 const THEME_LABELS: Record<KeyboardTheme, string> = {
   classic: "Classic", mint: "Mint", royal: "Royal",
@@ -29,7 +30,13 @@ const BASE_MAP: Record<string, string> = {
   Semicolon: ";", Quote: "'", Comma: ",", Period: ".", Slash: "/",
 };
 
-function charForCode(code: string, shift: boolean): string | null {
+function charForCode(code: string, shift: boolean, layout: KeyboardLayout): string | null {
+  if (layout !== "qwerty") {
+    const mapped = LAYOUT_MAPS[layout]?.[code];
+    if (mapped && mapped.length === 1) {
+      return /[A-Z]/.test(mapped) ? (shift ? mapped : mapped.toLowerCase()) : mapped;
+    }
+  }
   if (code.startsWith("Key")) {
     const letter = code.slice(3);
     return shift ? letter : letter.toLowerCase();
@@ -50,7 +57,13 @@ export default function FullKeyboardPage() {
   const [showTypingTest, setShowTypingTest] = useState(false);
   const [typedText, setTypedText] = useState("");
   const showTypingTestRef = useRef(false);
+  const layoutRef = useRef<KeyboardLayout>("qwerty");
   const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    showTypingTestRef.current = showTypingTest;
+    layoutRef.current = layout;
+  }, [showTypingTest, layout]);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -79,17 +92,14 @@ export default function FullKeyboardPage() {
     } else if (e.code === "Tab") {
       setTypedText((t) => t + "\t");
     } else {
-      const char = charForCode(e.code, e.shiftKey);
+      const char = charForCode(e.code, e.shiftKey, layoutRef.current);
       if (char) setTypedText((t) => t + char);
     }
   }, []);
 
   const toggleTypingTest = (e: MouseEvent<HTMLButtonElement>) => {
     e.currentTarget.blur();
-    setShowTypingTest((v) => {
-      showTypingTestRef.current = !v;
-      return !v;
-    });
+    setShowTypingTest((v) => !v);
   };
 
   const goBack = () => navigate("/");

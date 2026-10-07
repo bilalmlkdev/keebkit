@@ -1,14 +1,25 @@
-import { useState, useRef, useEffect, type ReactNode, type CSSProperties } from "react";
+import { useState, useRef, useEffect, useCallback, type ReactNode, type CSSProperties } from "react";
 import {
   SunDim, Sun, LayoutGrid, Search, Mic, Moon, Rewind, Play, FastForward,
   VolumeX, Volume1, Volume2, Hash, Lightbulb, ChevronUp, ChevronDown,
   ChevronLeft, ChevronRight,
 } from "lucide-react";
 
-export type KeyboardTheme = "classic" | "mint" | "royal" | "dolch" | "sand" | "scarlet";
-export type KeyboardLayout = "qwerty" | "azerty" | "dvorak";
+import { THEMES, LAYOUT_MAPS } from "../../lib/keyboard-theme-data";
+import type { KeyboardTheme, KeyboardLayout } from "../../lib/keyboard-theme-data";
+export type { KeyboardTheme, KeyboardLayout } from "../../lib/keyboard-theme-data";
+
 export type KeyColor = "base" | "mod" | "accent";
 export type KeyAlign = "tl" | "c";
+interface KeyDef {
+  label: string;
+  code: string;
+  width: string;
+  color: KeyColor;
+  align: KeyAlign;
+  icon?: ReactNode;
+}
+
 export type InteractionSource = "physical" | "mouse" | "touch";
 export type InteractionPhase = "down" | "up";
 export type PreviewAlign = "start" | "center";
@@ -31,71 +42,6 @@ export interface KeyboardProps {
   scale?: number;
   onKeyEvent?: (event: KeyboardInteractionEvent) => void;
 }
-
-interface ThemeTokens {
-  case: string;
-  base: string;
-  mod: string;
-  accent: string;
-  textBase: string;
-  textMod: string;
-  textAccent: string;
-}
-
-interface KeyDef {
-  label: string;
-  code: string;
-  width: string;
-  color: KeyColor;
-  align: KeyAlign;
-  icon?: ReactNode;
-}
-
-const THEMES: Record<KeyboardTheme, ThemeTokens> = {
-  classic: {
-    case: "#232226", base: "#e4d7d7", mod: "#9b72ff", accent: "#9b72ff",
-    textBase: "#4a4a4b", textMod: "#f0f0f0", textAccent: "#ffffff",
-  },
-  mint: {
-    case: "#1b2622", base: "#eaf3ee", mod: "#2f6f56", accent: "#37b787",
-    textBase: "#264034", textMod: "#eafaf3", textAccent: "#ffffff",
-  },
-  royal: {
-    case: "#1a1c30", base: "#e2e4f7", mod: "#3c3f8a", accent: "#5b5fef",
-    textBase: "#2a2b52", textMod: "#eceefd", textAccent: "#ffffff",
-  },
-  dolch: {
-    case: "#2b241c", base: "#f1e6cf", mod: "#6b5236", accent: "#c98a3f",
-    textBase: "#4a3c26", textMod: "#f6ecd9", textAccent: "#2b2115",
-  },
-  sand: {
-    case: "#26221b", base: "#f3ead4", mod: "#8a6f45", accent: "#c9a227",
-    textBase: "#4a3c22", textMod: "#f8f1de", textAccent: "#2b2115",
-  },
-  scarlet: {
-    case: "#241416", base: "#e9e2e2", mod: "#5c1a1a", accent: "#d43b34",
-    textBase: "#3a2222", textMod: "#f3e4e4", textAccent: "#ffffff",
-  },
-};
-
-export const KEYBOARD_THEMES = Object.keys(THEMES) as KeyboardTheme[];
-
-const LAYOUT_MAPS: Record<KeyboardLayout, Record<string, string>> = {
-  qwerty: {},
-  azerty: {
-    KeyQ: "A", KeyW: "Z", KeyA: "Q", KeyZ: "W", KeyM: ";", Semicolon: "M",
-    Minus: ")", Equal: "=", BracketLeft: "^", BracketRight: "$",
-    Backslash: "£", Quote: "ù", Slash: "!",
-  },
-  dvorak: {
-    KeyQ: "'", KeyW: ",", KeyE: ".", KeyR: "P", KeyT: "Y", KeyY: "F", KeyU: "G",
-    KeyI: "C", KeyO: "R", KeyP: "L", KeyA: "A", KeyS: "O", KeyD: "E", KeyF: "U",
-    KeyG: "I", KeyH: "D", KeyJ: "H", KeyK: "T", KeyL: "N", KeyZ: ";", KeyX: "Q",
-    KeyC: "J", KeyV: "K", KeyB: "X", KeyN: "B", KeyM: "M", Minus: "[", Equal: "]",
-    BracketLeft: "/", BracketRight: "=", Backslash: "\\", Semicolon: "S",
-    Quote: "-", Comma: "W", Period: "V", Slash: "Z",
-  },
-};
 
 function buildBaseRows(): KeyDef[][] {
   return [
@@ -212,28 +158,50 @@ export default function Keyboard({
   const [activeKeys, setActiveKeys] = useState<Set<string>>(new Set());
   const audioCtxRef = useRef<AudioContext | null>(null);
   const audioBufferRef = useRef<AudioBuffer | null>(null);
+  const rawAudioRef = useRef<ArrayBuffer | null>(null);
   const t = THEMES[theme] ?? THEMES.classic;
 
   useEffect(() => {
     if (!enableSound) return;
-    try {
-      if (!audioCtxRef.current) {
-        const Ctx = window.AudioContext || window.webkitAudioContext;
-        if (!Ctx) return;
-        audioCtxRef.current = new Ctx();
-      }
-      fetch(soundUrl)
-        .then((r) => r.arrayBuffer())
-        .then((buf) => audioCtxRef.current!.decodeAudioData(buf))
-        .then((decoded) => { audioBufferRef.current = decoded; })
-        .catch(() => {});
-    } catch {
-    }
+    let cancelled = false;
+    fetch(soundUrl)
+      .then((r) => r.arrayBuffer())
+      .then((buf) => {
+        rawAudioRef.current = buf;
+        if (audioCtxRef.current) {
+          audioCtxRef.current
+            .decodeAudioData(buf.slice(0))
+            .then((decoded) => { if (!cancelled) audioBufferRef.current = decoded; })
+            .catch(() => {});
+        }
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
   }, [enableSound, soundUrl]);
 
+  useEffect(() => {
+    return () => {
+      audioCtxRef.current?.close().catch(() => {});
+      audioCtxRef.current = null;
+      audioBufferRef.current = null;
+    };
+  }, []);
+
   const playSound = () => {
-    if (!enableSound || !audioCtxRef.current || !audioBufferRef.current) return;
+    if (!enableSound) return;
     try {
+      if (!audioCtxRef.current) {
+        const Ctx = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+        if (!Ctx) return;
+        audioCtxRef.current = new Ctx();
+        if (rawAudioRef.current) {
+          audioCtxRef.current
+            .decodeAudioData(rawAudioRef.current.slice(0))
+            .then((decoded) => { audioBufferRef.current = decoded; })
+            .catch(() => {});
+        }
+      }
+      if (!audioBufferRef.current || !audioCtxRef.current) return;
       if (audioCtxRef.current.state === "suspended") audioCtxRef.current.resume();
       const source = audioCtxRef.current.createBufferSource();
       source.buffer = audioBufferRef.current;
@@ -254,28 +222,40 @@ export default function Keyboard({
     }
   };
 
-  const pressKey = (code: string, source: InteractionSource = "physical", shiftKey = false) => {
+  const isEditableTarget = () => {
+    const el = document.activeElement;
+    if (!(el instanceof HTMLElement)) return false;
+    if (el.isContentEditable) return true;
+    const tag = el.tagName;
+    return tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT";
+  };
+
+  const pressKey = useCallback((code: string, source: InteractionSource = "physical", shiftKey = false) => {
     setActiveKeys((prev) => new Set(prev).add(code));
     playSound();
     triggerHaptics();
     onKeyEvent?.({ code, phase: "down", source, shiftKey });
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enableSound, enableHaptics, onKeyEvent]);
 
-  const releaseKey = (code: string, source: InteractionSource = "physical", shiftKey = false) => {
+  const releaseKey = useCallback((code: string, source: InteractionSource = "physical", shiftKey = false) => {
     setActiveKeys((prev) => {
       const next = new Set(prev);
       next.delete(code);
       return next;
     });
     onKeyEvent?.({ code, phase: "up", source, shiftKey });
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [onKeyEvent]);
 
   useEffect(() => {
     const handleDown = (e: KeyboardEvent) => {
       if (e.repeat) return;
+      if (isEditableTarget()) return;
       pressKey(e.code, "physical", e.shiftKey);
     };
     const handleUp = (e: KeyboardEvent) => {
+      if (isEditableTarget()) return;
       releaseKey(e.code, "physical", e.shiftKey);
     };
     window.addEventListener("keydown", handleDown);
@@ -284,7 +264,7 @@ export default function Keyboard({
       window.removeEventListener("keydown", handleDown);
       window.removeEventListener("keyup", handleUp);
     };
-    }, [enableSound, enableHaptics, onKeyEvent]);
+  }, [pressKey, releaseKey]);
 
   const isPressed = (code: string) => activeKeys.has(code);
 
@@ -354,8 +334,9 @@ export default function Keyboard({
                 onMouseDown={(e) => { e.preventDefault(); pressKey(key.code, "mouse"); }}
                 onMouseUp={() => releaseKey(key.code, "mouse")}
                 onMouseLeave={() => { if (isPressed(key.code)) releaseKey(key.code, "mouse"); }}
-                onTouchStart={(e) => { e.preventDefault(); pressKey(key.code, "touch"); }}
-                onTouchEnd={(e) => { e.preventDefault(); releaseKey(key.code, "touch"); }}
+                onTouchStart={() => pressKey(key.code, "touch")}
+                onTouchEnd={() => releaseKey(key.code, "touch")}
+                onTouchCancel={() => releaseKey(key.code, "touch")}
                 style={style}
                 className="relative inline-flex rounded-[6px] h-[40px] overflow-hidden select-none transition-transform duration-75 cursor-pointer"
               >

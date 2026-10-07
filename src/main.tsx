@@ -30,20 +30,6 @@ if ('serviceWorker' in navigator) {
   })
 }
 
-document.addEventListener("keydown", (e) => {
-  if ((e.ctrlKey || e.metaKey) && (e.key === "+" || e.key === "-" || e.key === "0" || e.key === "=")) {
-    e.preventDefault();
-    e.stopPropagation();
-  }
-}, true);
-
-document.addEventListener("wheel", (e) => {
-  if (e.ctrlKey) {
-    e.preventDefault();
-    e.stopPropagation();
-  }
-}, { capture: true, passive: false });
-
 const style = document.createElement("style");
 style.textContent = `html, body { touch-action: manipulation; overscroll-behavior: none; }`;
 document.head.appendChild(style);

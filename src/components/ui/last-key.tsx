@@ -33,16 +33,18 @@ export interface LastKeyProps {
 }
 
 export default function LastKey({ lastKey, accent = "#9b72ff" }: LastKeyProps) {
-  const [display, setDisplay] = useState<DisplayState | null>(null);
+  const [expiredId, setExpiredId] = useState<string | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => {
     if (!lastKey) return;
     clearTimeout(timerRef.current);
-    setDisplay({ label: labelFor(lastKey.code), id: lastKey.id });
-    timerRef.current = setTimeout(() => setDisplay(null), 500);
+    timerRef.current = setTimeout(() => setExpiredId(lastKey.id), 500);
     return () => clearTimeout(timerRef.current);
   }, [lastKey]);
+
+  const display: DisplayState | null =
+    lastKey && expiredId !== lastKey.id ? { label: labelFor(lastKey.code), id: lastKey.id } : null;
 
   return (
     <div className="h-14 flex items-end justify-center mb-1 pointer-events-none">

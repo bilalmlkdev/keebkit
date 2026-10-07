@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Keyboard, { type KeyboardTheme, type KeyboardLayout } from "./components/ui/keyboard";
 import { CodeBlock, PackageManagerTabs } from "./components/ui/code-block";
 import { FORMAT_SOURCES } from "./lib/format-sources";
-import { useSiteMode } from "./hooks/use-site-mode";
+import { useSiteMode } from "./lib/site-mode";
 import { Sun, Moon, Maximize2 } from "lucide-react";
 
 const ACCENT = "#9b72ff";
@@ -30,7 +30,7 @@ const API_ROWS = [
 const EVENT_ROWS = [
   { field: "code", type: "string", desc: "KeyboardEvent code, for example KeyA, Enter, ArrowLeft." },
   { field: "phase", type: '"down" | "up"', desc: "Whether the interaction is key press or key release." },
-  { field: "source", type: '"physical" | "pointer"', desc: "Physical keyboard event or key click/touch on UI." },
+  { field: "source", type: '"physical" | "mouse" | "touch"', desc: "Physical keyboard event or key click/touch on UI." },
   { field: "shiftKey", type: "boolean", desc: "True when the key was pressed with Shift held. Use this instead of tracking Shift yourself." },
 ];
 

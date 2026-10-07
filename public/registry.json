@@ -9,12 +9,19 @@
       "$schema": "https://ui.shadcn.com/schema/registry-item.json",
       "title": "Keyboard",
       "description": "A keyboard component with haptics and mechanical sound effects.",
-      "dependencies": ["lucide-react"],
+      "dependencies": [
+        "lucide-react"
+      ],
       "files": [
         {
           "path": "registry/keyboard.jsx",
           "type": "registry:component",
           "target": "components/ui/keyboard.jsx"
+        },
+        {
+          "path": "registry/keyboard-theme-data.js",
+          "type": "registry:component",
+          "target": "lib/keyboard-theme-data.js"
         }
       ]
     }
