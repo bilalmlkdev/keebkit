@@ -121,7 +121,7 @@ export default function FullKeyboardPage() {
         <div className="w-full max-w-4xl">
           <button
             onClick={goBack}
-            className="flex items-center gap-1.5 text-[13px] text-[var(--text-dim)] hover:text-[var(--text)] mb-6 bg-[var(--panel)] rounded-full px-2 py-1"
+            className="flex items-center gap-1.5 text-[13px] text-[var(--text-dim)] hover:text-[var(--text)] mb-6  rounded-full px-2 py-1"
           >
             <ArrowLeft size={15} /> Back
           </button>
